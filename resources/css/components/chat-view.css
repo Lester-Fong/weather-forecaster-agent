@@ -1,0 +1,127 @@
+/* Chat View Styles */
+.stardew-title {
+  margin-top: -20px;
+  padding: 1rem;
+  background-color: rgba(249, 243, 227, 0.95);
+  border: 4px solid #8e5c34;
+  border-radius: 10px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  position: relative;
+  z-index: 5;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stardew-title::before,
+.stardew-title::after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  width: 6px;
+  height: 20px;
+  background-color: #8e5c34;
+  z-index: -1;
+}
+
+.stardew-title::before {
+  left: 30%;
+}
+
+.stardew-title::after {
+  right: 30%;
+}
+
+.pixelated-heading {
+  font-family: "VT323", monospace;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+  letter-spacing: 2px;
+  line-height: 1;
+  color: #8e5c34;
+}
+
+.weather-icons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.weather-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.2));
+}
+
+.chat-container {
+  min-height: 400px;
+  max-height: calc(90vh - 250px);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stardew-paper {
+  background-color: rgba(249, 243, 227, 0.85);
+  border: 4px solid #8e5c34;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+  backdrop-filter: blur(3px);
+}
+
+.stardew-paper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAEklEQVQImWNgYGD4z0AswK4SAFXuAf8D/HktAAAAAElFTkSuQmCC");
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.chat-input-container {
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.stardew-input-container {
+  background-color: rgba(232, 214, 179, 0.9);
+  border: 4px solid #8e5c34;
+  border-radius: 8px;
+  margin-top: -8px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+}
+
+.stardew-input {
+  font-family: "VT323", monospace !important;
+  font-size: 1.3rem !important;
+  letter-spacing: 1px;
+}
+
+.stardew-button {
+  border: 2px solid #5a8f45;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+  transition: all 0.2s;
+}
+
+.stardew-button:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+.stardew-controls {
+  padding: 8px 0;
+}
+
+.stardew-control-btn {
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.stardew-control-btn:hover {
+  border-color: #8e5c34;
+  background-color: rgba(142, 92, 52, 0.1) !important;
+}

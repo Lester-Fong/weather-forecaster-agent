@@ -1,0 +1,63 @@
+/* Location Picker Styles */
+.location-picker {
+  width: 100%;
+  position: relative;
+  font-family: "VT323", monospace;
+}
+
+.location-results {
+  position: absolute;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  background: rgba(244, 235, 208, 0.9);
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+  border: 2px solid #8e5c34;
+  backdrop-filter: blur(5px);
+}
+
+:deep(.q-field--outlined .q-field__control) {
+  background: rgba(244, 235, 208, 0.9);
+  border: 2px solid #8e5c34 !important;
+  border-radius: 8px;
+  backdrop-filter: blur(3px);
+}
+
+:deep(.q-field--outlined .q-field__control:hover) {
+  border: 2px solid #5a8f45 !important;
+}
+
+:deep(.q-field__native) {
+  font-family: "VT323", monospace;
+  font-size: 1.2rem;
+  color: #493516;
+}
+
+:deep(.q-item) {
+  font-family: "VT323", monospace;
+  transition: all 0.2s;
+}
+
+:deep(.q-item:hover) {
+  background: #ebdcb2;
+}
+
+:deep(.q-btn) {
+  border: 2px solid transparent;
+}
+
+:deep(.q-btn:hover) {
+  border: 2px solid #5a8f45;
+}
+
+:deep(.q-item__label) {
+  font-size: 1.2rem;
+  color: #493516;
+}
+
+:deep(.q-item__label--caption) {
+  color: #8e5c34;
+  font-size: 1rem;
+}

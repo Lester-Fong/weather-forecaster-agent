@@ -1,0 +1,19 @@
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+@import 'tailwindcss';
+
+/* Import app theme and component styles */
+@import './app-theme.css';
+@import './components/chat-view.css';
+@import './components/message-bubble.css';
+@import './components/typing-indicator.css';
+@import './components/location-picker.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
