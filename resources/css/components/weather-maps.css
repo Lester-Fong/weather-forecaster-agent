@@ -1,0 +1,40 @@
+/* Weather Maps Styles */
+.weather-maps-button {
+  transition: all 0.2s ease;
+}
+
+.weather-maps-button:hover {
+  transform: scale(1.05);
+}
+
+.map-type-selector .q-btn {
+  font-family: "VT323", monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stardew-map-card {
+  background-color: var(--bg-paper);
+  border: 3px solid var(--border-primary);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Dark mode adjustments */
+.body--dark .map-loading-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.body--dark .map-legend {
+  background-color: rgba(30, 30, 30, 0.9);
+  border-color: #555;
+}
+
+.body--dark .map-placeholder {
+  border-color: #555;
+}

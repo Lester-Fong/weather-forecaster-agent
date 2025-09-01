@@ -6,7 +6,6 @@
 @import './components/chat-view.css';
 @import './components/message-bubble.css';
 @import './components/typing-indicator.css';
-@import './components/location-picker.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

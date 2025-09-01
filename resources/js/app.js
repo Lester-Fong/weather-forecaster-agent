@@ -1,8 +1,9 @@
 import './bootstrap';
 
 import { createApp } from 'vue';
-import { Quasar } from 'quasar';
+import { Quasar, Notify, Dialog } from 'quasar';
 import router from './router';
+import Vue3TouchEvents from 'vue3-touch-events';
 
 // Import Quasar css
 import 'quasar/dist/quasar.css';
@@ -17,7 +18,10 @@ const app = createApp(App);
 
 // Use Quasar with Stardew Valley inspired color palette
 app.use(Quasar, {
-    plugins: {}, // import Quasar plugins and add here
+    plugins: {
+        Notify,
+        Dialog
+    }, // import Quasar plugins and add here
     config: {
         brand: {
             // Stardew Valley color palette
@@ -33,6 +37,9 @@ app.use(Quasar, {
         }
     }
 });
+
+// Use Vue Touch Events for swipe gestures
+app.use(Vue3TouchEvents);
 
 // Use the router
 app.use(router);

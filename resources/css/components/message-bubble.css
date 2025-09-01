@@ -8,14 +8,14 @@
   font-family: "VT323", monospace;
   font-size: 1.2rem;
   letter-spacing: 0.5px;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 3px 3px 0 var(--shadow-color);
 }
 
 .user-message {
-  background-color: rgba(90, 143, 69, 0.9);
-  color: white;
+  background-color: var(--message-user-bg);
+  color: var(--message-user-text);
   align-self: flex-end;
-  border: 2px solid #3a5e26;
+  border: 2px solid var(--border-color);
   border-bottom-right-radius: 0;
   margin-right: 10px;
   backdrop-filter: blur(2px);
@@ -28,17 +28,17 @@
   bottom: 0;
   width: 10px;
   height: 10px;
-  background-color: rgba(90, 143, 69, 0.9);
-  border-right: 2px solid #3a5e26;
-  border-bottom: 2px solid #3a5e26;
+  background-color: var(--message-user-bg);
+  border-right: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
   clip-path: polygon(0 0, 100% 100%, 0 100%);
 }
 
 .ai-message {
-  background-color: rgba(244, 235, 208, 0.9);
-  color: #493516;
+  background-color: var(--message-ai-bg);
+  color: var(--text-color);
   align-self: flex-start;
-  border: 2px solid #8e5c34;
+  border: 2px solid var(--border-color);
   border-bottom-left-radius: 0;
   margin-left: 10px;
   backdrop-filter: blur(2px);
@@ -51,9 +51,9 @@
   bottom: 0;
   width: 10px;
   height: 10px;
-  background-color: rgba(244, 235, 208, 0.9);
-  border-left: 2px solid #8e5c34;
-  border-bottom: 2px solid #8e5c34;
+  background-color: var(--message-ai-bg);
+  border-left: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
   clip-path: polygon(0 100%, 100% 100%, 100% 0);
 }
 
@@ -79,12 +79,13 @@
 
 .location {
   font-weight: bold;
-  color: #8e5c34;
+  color: var(--border-color);
 }
 
 .timestamp {
   font-style: italic;
-  color: #666;
+  color: var(--text-color);
+  opacity: 0.7;
 }
 
 .weather-info {
@@ -102,12 +103,12 @@
 }
 
 .condition {
-  background-color: #8e5c34;
+  background-color: var(--border-color);
   color: white;
 }
 
 .temperature {
-  background-color: #3a5e26;
+  background-color: var(--border-color);
   color: white;
 }
 

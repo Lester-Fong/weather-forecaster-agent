@@ -6,14 +6,17 @@
           <div class="title-hanger left-hanger"></div>
           <div class="title-hanger right-hanger"></div>
         </div>
-        <h1 class="text-2xl font-bold pixelated-heading">Weather Forecaster</h1>
-        <p class="text-xl">Ask about weather in any location, any time!</p>
+        <h3 class="text-xl font-bold pixelated-heading">Weather Forecaster</h3>
+        <p class="pixelated-heading text-xl">
+          Ask about weather in any location, any time!
+        </p>
       </div>
 
       <!-- Chat messages container -->
       <div
         ref="chatContainer"
         class="chat-container flex-grow q-mb-md overflow-auto stardew-paper"
+        v-touch:swipe.right="showSettings"
       >
         <div class="flex flex-col q-pa-md">
           <!-- System welcome message -->
@@ -29,6 +32,9 @@
             :content="message.content"
             :is-user="message.isUser"
             :metadata="message.metadata"
+            v-touch:swipe.left="
+              message.isUser ? () => deleteMessage(index) : () => {}
+            "
           />
 
           <!-- Typing indicator -->
@@ -46,7 +52,8 @@
             class="col stardew-input"
             :disable="isTyping"
             @keydown.enter.prevent="sendMessage"
-            bg-color="amber-1"
+            :bg-color="$q.dark.isActive ? 'grey-9' : 'amber-1'"
+            color="primary"
           />
           <q-btn
             type="submit"
@@ -58,6 +65,7 @@
           >
             <q-tooltip>Send Message</q-tooltip>
           </q-btn>
+          <voice-input class="q-ml-sm" @input="handleVoiceInput" />
         </q-form>
 
         <div class="stardew-controls q-mt-sm flex justify-center">
@@ -71,36 +79,46 @@
           >
             <q-tooltip>Clear Chat</q-tooltip>
           </q-btn>
+
           <q-btn
             flat
             color="secondary"
             class="stardew-control-btn q-mx-md"
             padding="xs"
-            icon="location_on"
+            icon="notifications"
+            @click="showAlerts"
           >
-            <q-tooltip>Set Location</q-tooltip>
+            <q-tooltip>Weather Alerts</q-tooltip>
           </q-btn>
+
           <q-btn
             flat
             color="secondary"
             class="stardew-control-btn"
             padding="xs"
             icon="settings"
+            @click="showSettings"
           >
             <q-tooltip>Settings</q-tooltip>
           </q-btn>
         </div>
       </div>
+
+      <!-- Weather Alerts Component -->
+      <weather-alerts ref="weatherAlertsRef" />
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, computed } from "vue";
 import MessageBubble from "../components/MessageBubble.vue";
 import TypingIndicator from "../components/TypingIndicator.vue";
+import VoiceInput from "../components/VoiceInput.vue";
+import WeatherAlerts from "../components/WeatherAlerts.vue";
 import api from "../services/api";
 import axios from "axios";
+import { useQuasar } from "quasar";
 
 // Import external CSS
 import "../../css/components/chat-view.css";
@@ -112,6 +130,33 @@ const isTyping = ref(false);
 const chatContainer = ref(null);
 const sessionId = ref(generateSessionId());
 const userLocation = ref(null);
+const $q = useQuasar();
+const isOffline = ref(false);
+const weatherAlertsRef = ref(null);
+
+// Check network status
+window.addEventListener("online", updateOnlineStatus);
+window.addEventListener("offline", updateOnlineStatus);
+
+function updateOnlineStatus() {
+  isOffline.value = !navigator.onLine;
+  if (isOffline.value) {
+    $q.notify({
+      type: "warning",
+      message: "You are offline. Limited functionality available.",
+      position: "top",
+      timeout: 3000,
+    });
+  } else {
+    $q.notify({
+      type: "positive",
+      message: "You are back online!",
+      position: "top",
+      timeout: 2000,
+    });
+    // Fetch any updates if needed
+  }
+}
 
 // Methods
 function generateSessionId() {
@@ -149,7 +194,7 @@ async function sendMessage() {
     isTyping.value = false;
 
     // Add AI response from the server
-    messages.value.push({
+    const aiResponse = {
       content: response.data.message,
       isUser: false,
       metadata: {
@@ -158,7 +203,15 @@ async function sendMessage() {
         weather: response.data.metadata?.weather || null,
         date: response.data.metadata?.date || null,
       },
-    });
+    };
+
+    messages.value.push(aiResponse);
+
+    // Cache recent weather data for offline access
+    cacheWeatherData(response.data);
+
+    // Check for weather alerts
+    checkWeatherAlerts(response.data);
 
     // For debugging purposes only - remove in production
     console.log(response);
@@ -168,16 +221,108 @@ async function sendMessage() {
     console.error("Error sending message:", error);
     isTyping.value = false;
 
-    // Show error message
+    // Check if offline
+    if (!navigator.onLine) {
+      messages.value.push({
+        content:
+          "You appear to be offline. I'll try to provide information from cached data if available.",
+        isUser: false,
+        metadata: {
+          timestamp: new Date(),
+        },
+      });
+
+      // Try to use cached data
+      tryUseCachedData(userMessage);
+    } else {
+      // Online but other error
+      messages.value.push({
+        content: "Sorry, I encountered an error. Please try again.",
+        isUser: false,
+        metadata: {
+          timestamp: new Date(),
+        },
+      });
+    }
+
+    scrollToBottom();
+  }
+}
+
+function cacheWeatherData(responseData) {
+  try {
+    // Get existing cache or create new array
+    const existingCache = localStorage.getItem("recentWeatherData");
+    let weatherCache = existingCache ? JSON.parse(existingCache) : [];
+
+    // Add new weather data if it contains weather information
+    if (responseData.metadata && responseData.metadata.weather) {
+      const newCacheItem = {
+        location: responseData.metadata.location || "Unknown location",
+        description: responseData.message,
+        weather: responseData.metadata.weather,
+        date: responseData.metadata.date,
+        timestamp: Date.now(),
+      };
+
+      // Add to beginning of array
+      weatherCache.unshift(newCacheItem);
+
+      // Limit cache size to 5 items
+      weatherCache = weatherCache.slice(0, 5);
+
+      // Save to localStorage
+      localStorage.setItem("recentWeatherData", JSON.stringify(weatherCache));
+    }
+  } catch (error) {
+    console.error("Error caching weather data:", error);
+  }
+}
+
+function tryUseCachedData(userMessage) {
+  try {
+    const cachedData = localStorage.getItem("recentWeatherData");
+    if (cachedData) {
+      const weatherCache = JSON.parse(cachedData);
+      if (weatherCache.length > 0) {
+        // Simple keyword matching for offline mode
+        const userMessageLower = userMessage.toLowerCase();
+        const matchedItem = weatherCache.find((item) =>
+          userMessageLower.includes(item.location.toLowerCase())
+        );
+
+        if (matchedItem) {
+          messages.value.push({
+            content: `Here's the cached weather information for ${
+              matchedItem.location
+            } from ${new Date(matchedItem.timestamp).toLocaleString()}:\n\n${
+              matchedItem.description
+            }\n\n(This is cached data from your previous search)`,
+            isUser: false,
+            metadata: {
+              timestamp: new Date(),
+              location: matchedItem.location,
+              weather: matchedItem.weather,
+              date: matchedItem.date,
+              isCached: true,
+            },
+          });
+          return;
+        }
+      }
+    }
+
+    // No matching cached data
     messages.value.push({
-      content: "Sorry, I encountered an error. Please try again.",
+      content:
+        "I don't have any cached weather data for that location. Please reconnect to the internet to get the latest weather information.",
       isUser: false,
       metadata: {
         timestamp: new Date(),
       },
     });
-
-    scrollToBottom();
+  } catch (error) {
+    console.error("Error retrieving cached data:", error);
   }
 }
 
@@ -195,6 +340,74 @@ function clearChat() {
 
   // Generate a new session ID
   sessionId.value = generateSessionId();
+}
+
+function deleteMessage(index) {
+  if (messages.value[index].isUser) {
+    $q.dialog({
+      title: "Delete Message",
+      message: "Delete this message?",
+      cancel: true,
+      persistent: true,
+    }).onOk(() => {
+      messages.value.splice(index, 1);
+    });
+  }
+}
+
+function showSettings() {
+  $q.dialog({
+    title: "Settings",
+    message: "Swipe detected! Opening settings...",
+    persistent: true,
+  });
+  // In a real implementation, this would open the settings component
+}
+
+function handleVoiceInput(text) {
+  if (text && text.trim()) {
+    userInput.value = text;
+    // Optional: automatically send the message
+    sendMessage();
+
+    // Notify user that voice input was received
+    $q.notify({
+      type: "positive",
+      message: "Voice input received!",
+      position: "top",
+      timeout: 1500,
+    });
+  }
+}
+
+function showAlerts() {
+  if (weatherAlertsRef.value) {
+    weatherAlertsRef.value.showAlerts();
+  }
+}
+
+// Check for weather alerts with received data
+function checkWeatherAlerts(responseData) {
+  if (
+    weatherAlertsRef.value &&
+    responseData &&
+    responseData.metadata &&
+    responseData.metadata.weather
+  ) {
+    // Transform the data into the format expected by the alerts component
+    const weatherData = {
+      location: responseData.metadata.location || "",
+      temperature: responseData.metadata.weather.temperature || 0,
+      precipitation: responseData.metadata.weather.precipitation || 0,
+      snowfall: responseData.metadata.weather.snowfall || 0,
+      windSpeed: responseData.metadata.weather.windSpeed || 0,
+      isStorm: responseData.metadata.weather.isStorm || false,
+      isExtreme: responseData.metadata.weather.isExtreme || false,
+    };
+
+    // Check if any alerts should be triggered
+    weatherAlertsRef.value.checkAlerts(weatherData);
+  }
 }
 
 // Get user's geolocation
@@ -303,6 +516,24 @@ onMounted(() => {
   scrollToBottom();
   // Get user's location when the app loads
   getUserLocation();
+
+  // Check network status on load
+  updateOnlineStatus();
+
+  // Register service worker for offline support
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then((registration) => {
+        console.log(
+          "Service Worker registered with scope:",
+          registration.scope
+        );
+      })
+      .catch((error) => {
+        console.error("Service Worker registration failed:", error);
+      });
+  }
 });
 </script>
 
@@ -347,5 +578,11 @@ onMounted(() => {
   max-width: 80%;
   margin-left: auto;
   margin-right: auto;
+}
+
+:deep(.dark) .stardew-title {
+  background-color: rgba(40, 34, 24, 0.95);
+  border-color: #c2a97d;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.5);
 }
 </style>

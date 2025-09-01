@@ -7,6 +7,11 @@
           Weather Forecaster
           <span class="text-accent">☔</span>
         </q-toolbar-title>
+
+        <!-- Dark Mode Toggle -->
+        <div class="q-ml-md">
+          <dark-mode-toggle />
+        </div>
       </q-toolbar>
     </q-header>
 
@@ -19,6 +24,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import "../css/app-theme.css";
+import DarkModeToggle from "./components/DarkModeToggle.vue";
 
 // Generate a random number between 1 and 11 for the background
 const backgroundNumber = ref(1);
