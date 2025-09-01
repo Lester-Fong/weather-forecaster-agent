@@ -1,7 +1,10 @@
-FROM php:8.2-fpm
+FROM php:8.2-apache
 
 # Set working directory
 WORKDIR /var/www/html
+
+# Enable Apache modules
+RUN a2enmod rewrite
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -14,7 +17,6 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libsqlite3-dev \
-    nginx \
     gnupg2
 
 # Add a label to explicitly identify this as a Laravel application
@@ -37,40 +39,33 @@ RUN docker-php-ext-install pdo_sqlite
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy configuration files
-COPY docker/nginx/conf.d/app.conf /etc/nginx/conf.d/default.conf
-COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
-COPY docker/start.sh /usr/local/bin/start-container
-RUN chmod +x /usr/local/bin/start-container
+# Configure Apache for Laravel
+COPY docker/apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 
 # Copy application files
 COPY . /var/www/html
 
-# Create Laravel marker file
-RUN touch /var/www/html/.laravel
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Install dependencies and build frontend
-RUN npm install --no-audit --no-fund
-RUN npm run build
+# Create basic .env file from .env.example
+RUN cp .env.example .env
 
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 
-# Create basic .env file from .env.example
-RUN cp .env.example .env
-
 # Generate key and optimize application
 RUN php artisan key:generate --force
-RUN php artisan optimize:clear
 
 # Remove .env file (will be created at runtime with proper env vars)
 RUN rm .env
 
-# Expose port 8080 for Fly.io
-EXPOSE 8080
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Start Nginx and PHP-FPM
-CMD ["/usr/local/bin/start-container"]
+# Install NPM dependencies and build assets
+RUN npm install --no-audit --no-fund
+RUN npm run build
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache
+CMD ["apache2-foreground"]
