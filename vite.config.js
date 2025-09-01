@@ -18,13 +18,16 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
-    // Ensure assets use relative paths
+    // Ensure assets use fixed names in production
     build: {
         manifest: true,
         assetsDir: '',
         rollupOptions: {
             output: {
-                manualChunks: undefined
+                manualChunks: undefined,
+                entryFileNames: 'assets/app.js',
+                chunkFileNames: 'assets/app.js',
+                assetFileNames: 'assets/app.[ext]'
             }
         }
     },

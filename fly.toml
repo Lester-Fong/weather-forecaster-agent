@@ -19,6 +19,7 @@ kill_timeout = '5s'
   APP_ENV = 'production'
   APP_URL = 'https://weather-forecaster-agent.fly.dev'
   DB_CONNECTION = 'sqlite'
+  SESSION_DRIVER = 'file'
   LOG_CHANNEL = 'stderr'
   LOG_LEVEL = 'info'
 

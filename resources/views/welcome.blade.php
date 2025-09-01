@@ -18,19 +18,13 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
     <!-- Styles / Scripts -->
-    @production
-        @php
-            $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
-        @endphp
-        @if(isset($manifest['resources/css/app.css']['file']))
-            <link rel="stylesheet" href="{{ asset('build/'.$manifest['resources/css/app.css']['file']) }}">
-        @endif
-        @if(isset($manifest['resources/js/app.js']['file']))
-            <script src="{{ asset('build/'.$manifest['resources/js/app.js']['file']) }}" defer></script>
-        @endif
-    @else
+    @if(app()->environment('local'))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @endproduction
+    @else
+        <!-- Production assets with fixed paths -->
+        <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
+        <script src="{{ asset('build/assets/app.js') }}" defer></script>
+    @endif
 </head>
 
 <body>
