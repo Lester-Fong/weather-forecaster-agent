@@ -8,7 +8,8 @@ Choose the deployment option that best suits your needs:
 
 1. [Traditional Deployment](DEPLOYMENT.md) - Deploy directly on a server with PHP, Composer, and Node.js
 2. [Docker Deployment on AWS Free Tier](docs/docker-aws-deployment.md) - Deploy using Docker containers on AWS Free Tier
-3. [Fly.io Deployment via GitHub](docs/fly-io-github-deployment.md) - Deploy directly from GitHub using Fly.io's web interface (Recommended)
+3. [Fly.io Deployment via CLI](docs/fly-cli-deployment.md) - Deploy using Fly.io Command Line Interface (Recommended)
+4. [Fly.io Deployment via GitHub](docs/fly-io-github-deployment.md) - Deploy directly from GitHub using Fly.io's web interface
 
 ## Prerequisites for All Deployments
 
