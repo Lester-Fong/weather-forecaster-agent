@@ -24,8 +24,20 @@ This is a quick reference guide for deploying the Weather Forecaster Agent to Fl
 ## Troubleshooting App Type Detection
 
 If you encounter "launch manifest was created for a app, but this is a Laravel app" error:
-- The repository now includes metadata in `.fly/config.json` to address this
-- If you still encounter this issue, try deploying using the Fly CLI
+- The repository now includes multiple marker files and metadata to address this
+- If you still encounter this issue with the web interface, try deploying using the Fly CLI:
+
+```bash
+# Install flyctl if you haven't already
+curl -L https://fly.io/install.sh | sh
+
+# Login to Fly.io
+fly auth login
+
+# Deploy your app (run this in your project directory)
+fly launch --no-deploy
+fly deploy
+```
 
 ## Checking Deployment Status
 

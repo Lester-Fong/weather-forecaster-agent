@@ -40,6 +40,9 @@ RUN chmod +x /usr/local/bin/start-container
 # Copy application files
 COPY . /var/www/html
 
+# Create Laravel marker file
+RUN touch /var/www/html/.laravel
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 

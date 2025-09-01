@@ -1,0 +1,26 @@
+{
+  "buildconfig": {
+    "builder": "heroku/buildpacks:20",
+    "buildpacks": [
+      {
+        "name": "heroku/php"
+      }
+    ]
+  },
+  "deploy": {
+    "strategy": "immediate"
+  },
+  "processes": {
+    "web": {
+      "cmd": "/usr/local/bin/start-container"
+    }
+  },
+  "experimental": {
+    "enable_consul": true
+  },
+  "metadata": {
+    "platform": "php",
+    "app_type": "laravel",
+    "framework": "laravel"
+  }
+}

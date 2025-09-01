@@ -76,8 +76,32 @@ Click "Add Secret" to add these essential environment variables:
 
 1. **App Type Detection Error**:
    If you see an error like "launch manifest was created for a app, but this is a Laravel app":
-   - The repository already includes metadata in `.fly/config.json` to address this
-   - If you still encounter this issue, try deploying using the Fly CLI instead of the web interface
+   - The repository now includes multiple marker files and metadata to address this
+   - If the web interface still doesn't recognize your app correctly, use the Fly CLI instead:
+   
+   ```bash
+   # Install flyctl if you haven't already
+   curl -L https://fly.io/install.sh | sh
+   
+   # Login to Fly.io
+   fly auth login
+   
+   # Deploy your app (run this in your project directory)
+   fly launch --no-deploy
+   
+   # When prompted:
+   # - Choose your app name
+   # - Choose your region
+   # - Say No to PostgreSQL/Redis/etc.
+   # - Say Yes to creating a volume for storage
+   
+   # Finally deploy
+   fly deploy
+   
+   # Set your secrets
+   fly secrets set GEMINI_API_KEY=your_api_key
+   fly secrets set TIMEZONEDB_API_KEY=your_api_key
+   ```
 
 2. **Build Failure Related to Key Generation**:
    If you see an error like "file_get_contents(/var/www/html/.env): Failed to open stream":

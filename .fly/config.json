@@ -3,5 +3,12 @@
   "framework": "laravel",
   "builder": "dockerfile",
   "php_version": "8.2",
-  "web_server": "nginx"
+  "web_server": "nginx",
+  "laravel": {
+    "version": "12.x",
+    "database": "sqlite"
+  },
+  "build": {
+    "dockerfile": "../Dockerfile"
+  }
 }

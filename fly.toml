@@ -1,14 +1,21 @@
 app = "weather-forecaster-agent"
+primary_region = "sea"  # Change this to a region closest to you
 kill_signal = "SIGINT"
 kill_timeout = 5
-primary_region = "sea"  # Change this to a region closest to you
 
 [build]
   dockerfile = "Dockerfile"
   
+[deploy]
+  release_command = "php /var/www/html/artisan migrate --force"
+  
 [metadata]
   framework = "laravel"
   type = "laravel"
+  language = "php"
+  php_version = "8.2"
+  provider = "fly"
+  web_server = "nginx"
 
 [env]
   APP_ENV = "production"
