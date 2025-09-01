@@ -55,8 +55,6 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # Install Node.js dependencies and build frontend assets
 WORKDIR /var/www/html
 RUN npm install && NODE_ENV=production npm run build
-RUN mkdir -p /var/www/html/public/build/assets
-RUN cp -r /var/www/html/public/build/assets/* /var/www/html/public/build/assets/
 RUN chmod -R 755 /var/www/html/public/build
 
 # Generate application key
