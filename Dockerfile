@@ -50,9 +50,15 @@ RUN npm run build
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 
+# Create basic .env file from .env.example
+RUN cp .env.example .env
+
 # Generate key and optimize application
 RUN php artisan key:generate --force
 RUN php artisan optimize:clear
+
+# Remove .env file (will be created at runtime with proper env vars)
+RUN rm .env
 
 # Expose port 8080 for Fly.io
 EXPOSE 8080

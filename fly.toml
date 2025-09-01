@@ -17,6 +17,7 @@ primary_region = "sea"  # Change this to a region closest to you
   LOG_LEVEL = "info"
   DB_CONNECTION = "sqlite"
   APP_URL = "https://weather-forecaster-agent.fly.dev"
+  # Note: GEMINI_API_KEY and TIMEZONEDB_API_KEY should be set as secrets, not here
 
 [http_service]
   internal_port = 8080

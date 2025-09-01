@@ -14,10 +14,11 @@ This is a quick reference guide for deploying the Weather Forecaster Agent to Fl
 5. Add secrets:
    - `GEMINI_API_KEY`: Your Google Gemini API key
    - `TIMEZONEDB_API_KEY`: Your TimeZoneDB API key
+   - (Optional) `APP_KEY`: A Laravel application key (will be auto-generated if not provided)
 6. Create and attach volume:
    - Name: "weather_agent_data"
    - Size: 1 GB
-   - Mount: "/var/www/html/storage"
+   - Destination: "/var/www/html/storage"
 7. Deploy!
 
 ## Troubleshooting App Type Detection

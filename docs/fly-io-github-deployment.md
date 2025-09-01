@@ -38,6 +38,7 @@ Visit [https://fly.io/dashboard](https://fly.io/dashboard) and log in to your ac
 Click "Add Secret" to add these essential environment variables:
    - `GEMINI_API_KEY`: Your Google Gemini API key
    - `TIMEZONEDB_API_KEY`: Your TimeZoneDB API key
+   - (Optional) `APP_KEY`: A Laravel application key (will be auto-generated if not provided)
    - Any other environment variables you need (most are already in fly.toml)
 
 ### 5. Configure Volume
@@ -45,7 +46,7 @@ Click "Add Secret" to add these essential environment variables:
 1. Choose "Create and attach a volume"
 2. Volume name: "weather_agent_data" (as defined in fly.toml)
 3. Size: 1 GB (adjust as needed)
-4. Mount point: "/var/www/html/storage" (as defined in fly.toml)
+4. Destination: "/var/www/html/storage" (as defined in fly.toml)
 
 ### 6. Deploy the Application
 
@@ -78,17 +79,22 @@ Click "Add Secret" to add these essential environment variables:
    - The repository already includes metadata in `.fly/config.json` to address this
    - If you still encounter this issue, try deploying using the Fly CLI instead of the web interface
 
-2. **Build Failure**:
+2. **Build Failure Related to Key Generation**:
+   If you see an error like "file_get_contents(/var/www/html/.env): Failed to open stream":
+   - This should be fixed with our updated Dockerfile that handles .env creation
+   - Make sure you're using the latest version of the repository
+
+3. **Other Build Failures**:
    - Check the build logs for specific errors
    - Ensure your Dockerfile is correctly formatted
    - Verify that all required files are in the repository
 
-3. **Runtime Errors**:
+4. **Runtime Errors**:
    - Check application logs in the Fly.io dashboard
    - Verify environment variables are set correctly
    - Ensure the volume is properly mounted
 
-4. **Database Issues**:
+5. **Database Issues**:
    - Verify the SQLite database is being created correctly
    - Check file permissions in the container
 
