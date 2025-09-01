@@ -3,25 +3,29 @@ FROM php:8.2-fpm
 # Set working directory
 WORKDIR /var/www/html
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
     unzip \
     libsqlite3-dev \
-    nodejs \
-    npm \
-    nginx
+    nginx \
+    gnupg2
+
+# Install Node.js
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
+RUN apt-get install -y nodejs
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 RUN docker-php-ext-install pdo_sqlite
 
 # Get latest Composer
@@ -39,12 +43,16 @@ COPY . /var/www/html
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Install and build frontend
-RUN npm install && npm run build
+# Install dependencies and build frontend
+RUN npm install --no-audit --no-fund
+RUN npm run build
 
-# Generate key and optimize autoloader
-RUN composer install --optimize-autoloader --no-dev
+# Install PHP dependencies
+RUN composer install --optimize-autoloader --no-dev --no-interaction
+
+# Generate key and optimize application
 RUN php artisan key:generate --force
+RUN php artisan optimize:clear
 
 # Expose port 8080 for Fly.io
 EXPOSE 8080
