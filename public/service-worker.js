@@ -1,15 +1,47 @@
 // Service worker for Weather Forecaster Agent
 // This allows the application to work offline by caching assets and API responses
 
-const CACHE_NAME = 'weather-forecaster-cache-v1';
+const CACHE_NAME = 'weather-forecaster-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.php',
-  '/build/assets/app.css',
-  '/build/assets/app.js',
-  '/favicon.ico',
-  '/offline.html' // Fallback page when offline
+  '/offline.html', // Fallback page when offline
+  '/favicon.ico'
 ];
+
+// Dynamically cache CSS and JS from the build directory
+const cacheBuildAssets = async (cache) => {
+  try {
+    // Get the manifest.json file
+    const manifestResponse = await fetch('/build/manifest.json');
+    if (!manifestResponse.ok) {
+      throw new Error('Failed to fetch manifest.json');
+    }
+    
+    const manifest = await manifestResponse.json();
+    
+    // Extract asset URLs from the manifest
+    const assetUrls = Object.values(manifest)
+      .filter(entry => typeof entry === 'object' && entry.file)
+      .map(entry => '/build/' + entry.file);
+    
+    // Add the assets to the cache
+    await Promise.all(assetUrls.map(url => 
+      fetch(url, { credentials: 'same-origin' })
+        .then(response => {
+          if (response.ok) {
+            return cache.put(url, response);
+          }
+          throw new Error(`Failed to cache: ${url}`);
+        })
+        .catch(error => console.error('Cache error:', error))
+    ));
+    
+    console.log('Build assets cached successfully');
+  } catch (error) {
+    console.error('Error caching build assets:', error);
+  }
+};
 
 // Install event - cache static assets
 self.addEventListener('install', event => {
@@ -17,7 +49,14 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
+        // First cache the static assets
+        return cache.addAll(STATIC_ASSETS)
+          .then(() => cacheBuildAssets(cache))
+          .catch(error => {
+            console.error('Error in caching assets:', error);
+            // Continue even if some assets fail to cache
+            return Promise.resolve();
+          });
       })
       .then(() => self.skipWaiting())
   );

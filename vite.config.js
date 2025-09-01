@@ -18,4 +18,14 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    // Ensure assets use relative paths
+    build: {
+        manifest: true,
+        assetsDir: '',
+        rollupOptions: {
+            output: {
+                manualChunks: undefined
+            }
+        }
+    },
 });
