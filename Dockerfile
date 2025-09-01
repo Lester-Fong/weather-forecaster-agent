@@ -67,6 +67,8 @@ RUN cp .env.example .env \
 # Set proper permissions for storage and cache directories
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN mkdir -p /var/www/html/storage/framework/sessions
+RUN chmod -R 777 /var/www/html/storage/framework/sessions
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache

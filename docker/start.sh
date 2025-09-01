@@ -17,6 +17,7 @@ if [ ! -f /var/www/html/.env ]; then
   echo "LOG_LEVEL=${LOG_LEVEL:-info}" >> /var/www/html/.env
   
   echo "DB_CONNECTION=${DB_CONNECTION:-sqlite}" >> /var/www/html/.env
+  echo "SESSION_DRIVER=${SESSION_DRIVER:-file}" >> /var/www/html/.env
   
   echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> /var/www/html/.env
   echo "TIMEZONEDB_API_KEY=${TIMEZONEDB_API_KEY}" >> /var/www/html/.env
