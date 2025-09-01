@@ -45,8 +45,8 @@ COPY docker/apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 # Copy application files
 COPY . /var/www/html
 
-# Create basic .env file from .env.example
-RUN cp .env.example .env
+# Create basic .env file for key generation
+RUN if [ -f .env.example ]; then cp .env.example .env; else echo "APP_KEY=" > .env; fi
 
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction
@@ -55,7 +55,7 @@ RUN composer install --optimize-autoloader --no-dev --no-interaction
 RUN php artisan key:generate --force
 
 # Remove .env file (will be created at runtime with proper env vars)
-RUN rm .env
+RUN rm -f .env
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache

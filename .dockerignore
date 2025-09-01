@@ -10,7 +10,8 @@ storage/framework/sessions/*
 storage/framework/views/*
 bootstrap/cache/*
 .env
-.env.example
+# Keep .env.example as it's needed for the Dockerfile
+#.env.example
 .phpunit.result.cache
 phpunit.xml
 README.md

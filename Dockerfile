@@ -59,15 +59,15 @@ RUN npm run build
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 
-# Create basic .env file from .env.example
-RUN cp .env.example .env
+# Create basic .env file for key generation
+RUN if [ -f .env.example ]; then cp .env.example .env; else echo "APP_KEY=" > .env; fi
 
 # Generate key and optimize application
 RUN php artisan key:generate --force
 RUN php artisan optimize:clear
 
 # Remove .env file (will be created at runtime with proper env vars)
-RUN rm .env
+RUN rm -f .env
 
 # Expose port 8080 for Fly.io
 EXPOSE 8080
