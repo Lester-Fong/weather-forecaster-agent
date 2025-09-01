@@ -1,0 +1,7 @@
+{
+  "app_type": "laravel",
+  "framework": "laravel",
+  "builder": "dockerfile",
+  "php_version": "8.2",
+  "web_server": "nginx"
+}
