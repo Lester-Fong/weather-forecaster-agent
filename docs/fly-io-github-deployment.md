@@ -7,6 +7,7 @@ This guide provides step-by-step instructions for deploying your Weather Forecas
 1. A GitHub account with your Weather Forecaster Agent repository
 2. A Fly.io account (sign up at https://fly.io)
 3. A Gemini API key for the weather forecasting functionality
+4. A TimeZoneDB API key (get a free one from https://timezonedb.com/api)
 
 ## Deployment Steps
 
@@ -25,7 +26,8 @@ Visit [https://fly.io/dashboard](https://fly.io/dashboard) and log in to your ac
 ### 3. Configure Deployment Settings
 
 1. Review the automatically detected settings
-2. Confirm the following settings are correctly set:
+2. Make sure it detects the application as a Laravel application
+3. Confirm the following settings are correctly set:
    - Organization (your Fly.io organization)
    - App Name: "weather-forecaster-agent" (or choose a different name)
    - Region: Choose a region closest to your users (default is "sea" in fly.toml)
@@ -35,6 +37,7 @@ Visit [https://fly.io/dashboard](https://fly.io/dashboard) and log in to your ac
 
 Click "Add Secret" to add these essential environment variables:
    - `GEMINI_API_KEY`: Your Google Gemini API key
+   - `TIMEZONEDB_API_KEY`: Your TimeZoneDB API key
    - Any other environment variables you need (most are already in fly.toml)
 
 ### 5. Configure Volume
@@ -70,17 +73,22 @@ Click "Add Secret" to add these essential environment variables:
 
 ### Common Issues
 
-1. **Build Failure**:
+1. **App Type Detection Error**:
+   If you see an error like "launch manifest was created for a app, but this is a Laravel app":
+   - The repository already includes metadata in `.fly/config.json` to address this
+   - If you still encounter this issue, try deploying using the Fly CLI instead of the web interface
+
+2. **Build Failure**:
    - Check the build logs for specific errors
    - Ensure your Dockerfile is correctly formatted
    - Verify that all required files are in the repository
 
-2. **Runtime Errors**:
+3. **Runtime Errors**:
    - Check application logs in the Fly.io dashboard
    - Verify environment variables are set correctly
    - Ensure the volume is properly mounted
 
-3. **Database Issues**:
+4. **Database Issues**:
    - Verify the SQLite database is being created correctly
    - Check file permissions in the container
 
