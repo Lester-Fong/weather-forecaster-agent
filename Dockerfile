@@ -49,6 +49,20 @@ COPY . /var/www/html
 # Create Laravel marker file
 RUN touch /var/www/html/.laravel
 
+# Install PHP dependencies
+RUN composer install --no-interaction --optimize-autoloader --no-dev
+
+# Install Node.js dependencies and build frontend assets
+WORKDIR /var/www/html
+RUN npm install && npm run build
+
+# Generate application key
+RUN cp .env.example .env \
+    && php artisan key:generate \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
