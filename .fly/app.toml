@@ -1,9 +1,0 @@
-[build]
-  builder = "dockerfile"
-  dockerfile = "Dockerfile"
-
-[app]
-  type = "laravel"
-  framework = "laravel"
-  language = "php"
-  language_version = "8.2"

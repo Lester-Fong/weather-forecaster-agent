@@ -1,6 +1,6 @@
-# Deployment Guide for Weather Forecaster Agent
+# Weather Forecaster Agent Deployment Guide
 
-This guide provides step-by-step instructions for deploying the Weather Forecaster Agent application to various environments.
+This comprehensive guide provides instructions for deploying the Weather Forecaster Agent application in various environments.
 
 ## Prerequisites
 
@@ -8,8 +8,14 @@ This guide provides step-by-step instructions for deploying the Weather Forecast
 - Composer
 - Node.js and NPM
 - Git
-- Web server (Apache, Nginx, etc.)
-- SSL certificate (recommended for production)
+
+## Environment Variables
+
+The following environment variables need to be configured for any deployment:
+
+```
+GEMINI_API_KEY=your_gemini_api_key
+```
 
 ## Local Development Environment
 
@@ -52,7 +58,7 @@ npm run dev
 php artisan serve
 ```
 
-## Production Deployment
+## Traditional Server Deployment
 
 ### Server Requirements
 
@@ -148,9 +154,139 @@ server {
 sudo service nginx restart
 ```
 
-## Docker Deployment (Alternative)
+## Docker Deployment
 
-Coming soon
+The Weather Forecaster Agent comes with Docker configuration for easy containerized deployment.
+
+### Prerequisites
+
+- Docker
+- Docker Compose (for local development)
+
+### Local Docker Development
+
+1. Build and start the Docker containers:
+```bash
+docker-compose up -d
+```
+
+2. Access the application at http://localhost:8080
+
+### Production Docker Deployment
+
+Use the provided Dockerfile for production deployment:
+
+```bash
+docker build -t weather-forecaster-agent .
+docker run -p 80:8080 -e GEMINI_API_KEY=your_api_key weather-forecaster-agent
+```
+
+## Fly.io Deployment (Recommended)
+
+Deploying to Fly.io is the recommended approach for quickly getting your Weather Forecaster Agent online.
+
+### Prerequisites
+
+1. A GitHub account with your Weather Forecaster Agent repository
+2. A Fly.io account (sign up at https://fly.io)
+3. A Gemini API key for the weather forecasting functionality
+
+### 1. Install the Fly CLI
+
+#### Windows:
+```powershell
+iwr https://fly.io/install.ps1 -useb | iex
+```
+
+#### macOS/Linux:
+```bash
+curl -L https://fly.io/install.sh | sh
+```
+
+After installation, you may need to restart your terminal.
+
+### 2. Log in to Fly.io
+
+```bash
+fly auth login
+```
+This will open a browser window for you to authenticate.
+
+### 3. Navigate to Your Project Directory
+
+```bash
+cd path/to/weather-forecaster-agent
+```
+
+### 4. Initialize Your Fly.io App
+
+```bash
+fly launch --no-deploy
+```
+
+During this process, you'll be asked a series of questions:
+- **App name**: Choose a name (e.g., "weather-forecaster-agent" or a custom name)
+- **Organization**: Select your Fly.io organization
+- **Region**: Choose a region closest to your users
+- **PostgreSQL**: Choose "No"
+- **Redis**: Choose "No"
+- **Volume**: Choose "Yes" to create a volume
+  - Name: "weather_agent_data"
+  - Size: 1 GB
+  - Destination: "/var/www/html/storage"
+
+This command will create/update your `fly.toml` file with the correct settings.
+
+### 5. Set Required Secrets
+
+```bash
+fly secrets set GEMINI_API_KEY=your_gemini_api_key
+```
+
+Replace `your_gemini_api_key` with your actual API key.
+
+### 6. Deploy Your Application
+
+```bash
+fly deploy
+```
+
+This command will:
+- Build your Docker image using your Dockerfile
+- Push the image to Fly.io's registry
+- Deploy the application
+- Attach the volume
+- Configure networking
+
+### 7. Check Application Status
+
+```bash
+fly status
+```
+
+### 8. Access Your Application
+
+Once deployed, visit your application at:
+```
+https://your-app-name.fly.dev
+```
+
+Replace `your-app-name` with the name you chose during setup.
+
+### Viewing Logs
+
+If you encounter issues, you can check the logs:
+
+```bash
+fly logs
+```
+
+### Updating Your Application
+
+When you make changes to your code:
+
+1. Commit and push to GitHub
+2. Run `fly deploy` again
 
 ## Troubleshooting
 
