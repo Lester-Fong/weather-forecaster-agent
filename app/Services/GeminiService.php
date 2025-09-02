@@ -43,6 +43,16 @@ class GeminiService
     public function __construct()
     {
         $this->apiKey = config('services.gemini.key');
+
+        // Log initialization info
+        Log::info("GeminiService initialized", [
+            'api_key_set' => !empty($this->apiKey),
+            'api_key_length' => strlen($this->apiKey),
+            'environment' => app()->environment(),
+            'config_path' => 'services.gemini.key',
+            'env_var_exists' => !empty(env('GEMINI_API_KEY')),
+            'env_var_length' => strlen(env('GEMINI_API_KEY'))
+        ]);
     }
 
     /**
@@ -344,7 +354,17 @@ class GeminiService
             $fullPrompt .= "15. When referring to a city or location, ALWAYS include the country name for clarity (e.g., 'Paris, France').\n";
             $fullPrompt .= "16. Format your response with proper paragraph breaks to improve readability.\n";
             $fullPrompt .= "17. IMPORTANT: Use EXACTLY the location provided in the LOCATION field above. Do NOT switch to a similarly named location in a different country.\n";
-            $fullPrompt .= "18. Be precise about the country the location is in - if the location has the same name in another country, use the user's country as default. eg: it's Santa Rosa, Philippines then talk about the Philippines, not Italy or any other country.\n";            // Make the API request
+            $fullPrompt .= "18. Be precise about the country the location is in - if the location has the same name in another country, use the user's country as default. eg: it's Santa Rosa, Philippines then talk about the Philippines, not Italy or any other country.\n";
+
+            // Debug log for API key
+            Log::info("Gemini API Key Debug", [
+                'key_exists' => !empty($this->apiKey),
+                'key_length' => strlen($this->apiKey),
+                'key_first_chars' => !empty($this->apiKey) ? substr($this->apiKey, 0, 5) . '...' : 'n/a',
+                'env' => app()->environment(),
+            ]);
+
+            // Make the API request
             $response = Http::post("{$this->apiBaseUrl}/models/{$this->model}:generateContent?key={$this->apiKey}", [
                 'contents' => [
                     [

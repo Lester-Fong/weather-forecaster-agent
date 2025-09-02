@@ -40,13 +40,32 @@ class WeatherAgentController extends Controller
 
         // Get or create the conversation
         $sessionId = $request->input('session_id', Str::uuid()->toString());
-        $conversation = Conversation::firstOrCreate(
-            ['session_id' => $sessionId],
-            [
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]
-        );
+
+        // In production with read-only database, use a non-persisted conversation
+        if (app()->environment('production')) {
+            $conversation = Conversation::firstWhere(['session_id' => $sessionId]);
+
+            if (!$conversation) {
+                // Create a transient conversation object without persisting
+                $conversation = new Conversation([
+                    'session_id' => $sessionId,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+                // Set id to prevent foreign key constraint issues
+                $conversation->id = 0;
+                $conversation->exists = false;
+            }
+        } else {
+            // In development, create and persist normally
+            $conversation = Conversation::firstOrCreate(
+                ['session_id' => $sessionId],
+                [
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]
+            );
+        }
 
         // Save the user message
         $userMessage = new Message([
@@ -54,7 +73,14 @@ class WeatherAgentController extends Controller
             'is_user' => true,
             'location_id' => $request->input('location_id'), // Save location_id with user message
         ]);
-        $conversation->messages()->save($userMessage);
+
+        // Only save to database if not in production
+        if (!app()->environment('production')) {
+            $conversation->messages()->save($userMessage);
+        } else {
+            // In production, just set the relationship without saving
+            $userMessage->conversation_id = $conversation->id;
+        }
 
         // Process the query with location_id if provided
         $response = $this->weatherQueryService->processQuery(
@@ -74,7 +100,14 @@ class WeatherAgentController extends Controller
                 'data' => $response['data'],
             ],
         ]);
-        $conversation->messages()->save($responseMessage);
+
+        // Only save to database if not in production
+        if (!app()->environment('production')) {
+            $conversation->messages()->save($responseMessage);
+        } else {
+            // In production, just set the relationship without saving
+            $responseMessage->conversation_id = $conversation->id;
+        }
 
         // Extract essential weather data for the UI
         $weatherData = null;
@@ -257,13 +290,32 @@ class WeatherAgentController extends Controller
             // Get or create conversation if session_id provided
             if ($request->has('session_id')) {
                 $sessionId = $request->input('session_id');
-                $conversation = Conversation::firstOrCreate(
-                    ['session_id' => $sessionId],
-                    [
-                        'ip_address' => $request->ip(),
-                        'user_agent' => $request->userAgent(),
-                    ]
-                );
+
+                // In production with read-only database, use a non-persisted conversation
+                if (app()->environment('production')) {
+                    $conversation = Conversation::firstWhere(['session_id' => $sessionId]);
+
+                    if (!$conversation) {
+                        // Create a transient conversation object without persisting
+                        $conversation = new Conversation([
+                            'session_id' => $sessionId,
+                            'ip_address' => $request->ip(),
+                            'user_agent' => $request->userAgent(),
+                        ]);
+                        // Set id to prevent foreign key constraint issues
+                        $conversation->id = 0;
+                        $conversation->exists = false;
+                    }
+                } else {
+                    // In development, create and persist normally
+                    $conversation = Conversation::firstOrCreate(
+                        ['session_id' => $sessionId],
+                        [
+                            'ip_address' => $request->ip(),
+                            'user_agent' => $request->userAgent(),
+                        ]
+                    );
+                }
             }
 
             return response()->json([

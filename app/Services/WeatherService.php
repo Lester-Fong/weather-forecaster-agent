@@ -238,6 +238,11 @@ class WeatherService
      */
     protected function getCachedWeather(Location $location, string $type, ?string $date = null)
     {
+        // If we're in production or the location is not persisted, skip cache lookup
+        if (app()->environment('production') || !$location->exists || !$location->id) {
+            return null;
+        }
+
         $cache = WeatherCache::where('location_id', $location->id)
             ->where('type', $type)
             ->where('date', $date)
@@ -250,10 +255,15 @@ class WeatherService
     /**
      * Cache weather data.
      *
-     * @return WeatherCache
+     * @return WeatherCache|null
      */
     protected function cacheWeatherData(Location $location, string $type, ?string $date, array $data)
     {
+        // Skip caching in production to avoid issues with read-only databases
+        if (app()->environment('production')) {
+            return null;
+        }
+
         return WeatherCache::updateOrCreate(
             [
                 'location_id' => $location->id,

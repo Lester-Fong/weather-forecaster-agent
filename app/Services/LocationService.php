@@ -253,15 +253,30 @@ class LocationService
         }
 
         if (! $location) {
-            // Create a new location if none found
-            $location = Location::create([
-                'name' => $name,
-                'country' => $country,
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'timezone' => $timezone ?? 'UTC',
-                'usage_count' => 1,
-            ]);
+            // In production, we should avoid writes to the database if it's read-only
+            if (app()->environment('production')) {
+                // Create a non-persisted location object with default values
+                $location = new Location([
+                    'name' => $name,
+                    'country' => $country,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'timezone' => $timezone ?? 'UTC',
+                    'usage_count' => 1,
+                ]);
+                // Set exists to false to indicate it's not from database
+                $location->exists = false;
+            } else {
+                // Create a new location if none found (development environment)
+                $location = Location::create([
+                    'name' => $name,
+                    'country' => $country,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'timezone' => $timezone ?? 'UTC',
+                    'usage_count' => 1,
+                ]);
+            }
         } else {
             // Increment usage count
             $location->incrementUsage();

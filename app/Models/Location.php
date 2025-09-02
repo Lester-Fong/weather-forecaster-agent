@@ -49,9 +49,16 @@ class Location extends Model
 
     /**
      * Increment the usage count for this location.
+     * 
+     * Skips the increment in production to avoid issues with read-only databases.
      */
     public function incrementUsage()
     {
+        // Skip database writes in production to handle read-only database scenarios
+        if (app()->environment('production')) {
+            return;
+        }
+
         $this->increment('usage_count');
     }
 }
