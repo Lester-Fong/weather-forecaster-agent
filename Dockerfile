@@ -46,6 +46,9 @@ RUN chmod +x /usr/local/bin/start-container
 # Copy application files
 COPY . /var/www/html
 
+# Ensure icons are properly copied
+COPY docker/icons/*.png /var/www/html/public/icons/
+
 # Create Laravel marker file
 RUN touch /var/www/html/.laravel
 
@@ -54,7 +57,8 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Install Node.js dependencies and build frontend assets
 WORKDIR /var/www/html
-RUN npm install && NODE_ENV=production npm run build
+RUN npm install
+RUN npm run build
 RUN chmod -R 755 /var/www/html/public/build
 
 # Generate application key
@@ -89,6 +93,18 @@ RUN php artisan optimize:clear
 
 # Remove .env file (will be created at runtime with proper env vars)
 RUN rm -f .env
+
+# Set file permissions
+RUN mkdir -p /var/www/html/storage/logs /var/www/html/storage/app/public /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html/storage
+
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y curl && apt-get clean
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/ || exit 1
 
 # Expose port 8080 for Fly.io
 EXPOSE 8080
