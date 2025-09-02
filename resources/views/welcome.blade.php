@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#5A8F45">
     <meta name="description" content="AI-powered weather forecasting assistant with natural language interface">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'AI Weather Agent') }}</title>
 
