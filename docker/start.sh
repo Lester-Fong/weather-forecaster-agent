@@ -35,7 +35,6 @@ if [ ! -f /var/www/html/.env ]; then
   echo "SESSION_DRIVER=${SESSION_DRIVER:-file}" >> /var/www/html/.env
   
   echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> /var/www/html/.env
-  echo "TIMEZONEDB_API_KEY=${TIMEZONEDB_API_KEY}" >> /var/www/html/.env
   
   # Generate app key if not already set
   if [ -z "${APP_KEY}" ]; then
@@ -105,16 +104,6 @@ if [ "${APP_ENV}" != "production" ]; then
   echo "Environment variables dumped to logs for debugging."
 else
   echo "Skipping environment variables dump in production."
-fi
-
-# Start PHP-FPM and keep in background
-echo "Starting PHP-FPM..."
-php-fpm -D
-
-# Check if PHP-FPM started successfully
-if [ $? -ne 0 ]; then
-  echo "ERROR: PHP-FPM failed to start!"
-  exit 1
 fi
 
 # Create a simple server to listen on port 8080

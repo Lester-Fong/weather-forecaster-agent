@@ -25,7 +25,33 @@ An AI-powered weather forecasting assistant that allows users to have natural la
 
 ## Deployment Options
 
-### Local Development with Docker
+### Local Development
+
+```bash
+# Clone repository
+git clone https://github.com/Lester-Fong/weather-forecaster-agent.git
+cd weather-forecaster-agent
+
+# Install dependencies
+composer install
+npm install
+
+# Configure environment
+cp .env.example .env
+php artisan key:generate
+
+# Set up the database
+touch database/database.sqlite
+php artisan migrate
+
+# Build frontend assets
+npm run build
+
+# Serve the application
+php artisan serve
+```
+
+### Deploying with Docker
 
 ```bash
 # Clone repository
@@ -35,15 +61,9 @@ cd weather-forecaster-agent
 # Build and start Docker containers
 docker-compose build
 docker-compose up -d
-
-# Run migrations and setup
-docker-compose exec app php artisan migrate
-docker-compose exec app php artisan storage:link
 ```
 
-For more details, see the [Docker deployment guide](docs/docker-aws-deployment.md).
-
-### Deploying to Fly.io (Free Tier)
+### Deploying to Fly.io
 
 ```bash
 # Install Fly CLI
@@ -53,92 +73,25 @@ curl -L https://fly.io/install.sh | sh
 fly auth login
 
 # Deploy the application
-fly launch --copy-config --dockerfile Dockerfile --env-file .env.fly
+fly launch --dockerfile Dockerfile
 fly volumes create weather_agent_data --size 1
 fly deploy
 ```
 
-For detailed instructions, see the [Fly.io deployment guide](docs/fly-io-deployment.md).
+Make sure to set your `GEMINI_API_KEY` in your environment or through the Fly.io secrets.
 
-## Getting Started
+## Configuration
 
-### Prerequisites
+The application requires the following environment variables:
 
-- PHP 8.2+
-- Composer
-- Node.js and NPM
-- SQLite
-
-### Installation
-
-1. Clone the repository
-```bash
-git clone https://github.com/Lester-Fong/weather-forecaster-agent.git
-cd weather-forecaster-agent
-```
-
-2. Install PHP dependencies
-```bash
-composer install
-```
-
-3. Install JavaScript dependencies
-```bash
-npm install
-```
-
-4. Copy the example environment file and set up your environment variables
-```bash
-cp .env.example .env
-```
-
-5. Generate application key
-```bash
-php artisan key:generate
-```
-
-6. Set up the database
-```bash
-php artisan migrate
-```
-
-7. Build the frontend assets
-```bash
-npm run build
-```
-
-8. Serve the application
-```bash
-php artisan serve
-```
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- `GEMINI_API_KEY`: Your Google Gemini API key for the AI functionality
+- `APP_URL`: The URL where the application is hosted (used for API endpoints)
+- `DB_CONNECTION`: Set to `sqlite` for the default configuration
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
