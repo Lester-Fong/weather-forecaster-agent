@@ -1,13 +1,15 @@
 <template>
-  <q-page class="flex flex-col q-pa-md">
-    <div class="container mx-auto flex flex-col h-screen max-w-3xl">
+  <q-page class="flex q-pa-md">
+    <div class="container mx-auto flex h-screen max-w-3xl">
       <div class="text-center q-mb-md stardew-title">
         <div class="title-hangers">
           <div class="title-hanger left-hanger"></div>
           <div class="title-hanger right-hanger"></div>
         </div>
-        <h3 class="text-xl font-bold pixelated-heading">Weather Forecaster</h3>
-        <p class="pixelated-heading text-xl">
+        <p class="text-3xl md:text-5xl font-bold pixelated-heading">
+          Weather Forecaster
+        </p>
+        <p class="pixelated-heading text-lg md:text-xl">
           Ask about weather in any location, any time!
         </p>
       </div>
@@ -44,7 +46,7 @@
 
       <!-- Input form -->
       <div class="chat-input-container q-pa-sm stardew-input-container">
-        <q-form @submit="sendMessage" class="row">
+        <q-form @submit="sendMessage" class="row items-center no-wrap">
           <q-input
             v-model="userInput"
             placeholder="Type your weather question..."

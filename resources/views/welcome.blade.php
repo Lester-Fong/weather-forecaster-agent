@@ -23,7 +23,8 @@
     @else
         <!-- Production assets with fixed paths -->
         <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
-        <script src="{{ asset('build/assets/app.js') }}" defer></script>
+        <link rel="stylesheet" href="{{ asset('build/assets/app2.css') }}">
+        <script src="{{ asset('build/assets/app2.js') }}" type="module"></script>
     @endif
 </head>
 
