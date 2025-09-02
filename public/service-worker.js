@@ -6,35 +6,44 @@ const STATIC_ASSETS = [
   '/',
   '/index.php',
   '/offline.html', // Fallback page when offline
-  '/favicon.ico'
+  '/favicon.ico',
+  '/assets/1.jpg',
+  '/assets/2.jpg',
+  '/app.js',
+  '/manifest.json',
+  '/build/assets/app.css',
+  '/build/assets/app2.css',
+  '/build/assets/app2.js',
+  '/build/assets/app.woff',
+  '/build/assets/app.woff2'
 ];
 
 // Dynamically cache CSS and JS from the build directory
 const cacheBuildAssets = async (cache) => {
   try {
-    // Get the manifest.json file
-    const manifestResponse = await fetch('/build/manifest.json');
-    if (!manifestResponse.ok) {
-      throw new Error('Failed to fetch manifest.json');
-    }
-    
-    const manifest = await manifestResponse.json();
-    
-    // Extract asset URLs from the manifest
-    const assetUrls = Object.values(manifest)
-      .filter(entry => typeof entry === 'object' && entry.file)
-      .map(entry => '/build/' + entry.file);
+    // Since we don't have a manifest.json in production, we'll directly cache the known assets
+    const buildAssets = [
+      '/build/assets/app.css',
+      '/build/assets/app2.css',
+      '/build/assets/app2.js',
+      '/build/assets/app.woff',
+      '/build/assets/app.woff2'
+    ];
     
     // Add the assets to the cache
-    await Promise.all(assetUrls.map(url => 
+    await Promise.all(buildAssets.map(url => 
       fetch(url, { credentials: 'same-origin' })
         .then(response => {
           if (response.ok) {
             return cache.put(url, response);
           }
-          throw new Error(`Failed to cache: ${url}`);
+          console.warn(`Failed to cache: ${url}`, response.status);
+          return Promise.resolve(); // Continue even if there's an issue
         })
-        .catch(error => console.error('Cache error:', error))
+        .catch(error => {
+          console.warn('Cache error:', error);
+          return Promise.resolve(); // Continue even if there's an error
+        })
     ));
     
     console.log('Build assets cached successfully');
@@ -84,6 +93,10 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
+  
+  // Skip URLs that aren't http or https (like chrome-extension://)
+  const url = new URL(event.request.url);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
   
   // Handle API requests differently
   if (event.request.url.includes('/api/')) {
@@ -150,6 +163,12 @@ function handleApiRequest(event) {
 
 // Handle static assets with a cache-first strategy
 function handleStaticRequest(event) {
+  // Skip URLs that aren't http or https (like chrome-extension://)
+  const url = new URL(event.request.url);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+  
   event.respondWith(
     caches.match(event.request)
       .then(cachedResponse => {
