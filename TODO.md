@@ -39,8 +39,11 @@ A mobile-first AI-powered weather agent web application that allows users to ask
 - [x] Fix server configuration issues
 - [x] Fix mobile UI responsiveness
 
-## Current Task
+### Phase 5: Project Maintenance
 - [x] Clean up project files and configurations
+- [x] Fix Dockerfile linting issues
+- [x] Remove redundant deployment files
+- [x] Update documentation
 
 ## Future Enhancements
 - [ ] Add user authentication
@@ -144,7 +147,7 @@ A mobile-first AI-powered weather agent web application that allows users to ask
   - [x] Create Docker configuration files
   - [x] Create Fly.io deployment setup
   - [x] Successfully deploy to Fly.io
-- [ ] Create documentation
+- [x] Create documentation
   - [x] API documentation
   - [x] Setup instructions
   - [x] User guide
@@ -152,11 +155,15 @@ A mobile-first AI-powered weather agent web application that allows users to ask
 - [x] Optimize for production
 - [x] Final testing
 - [x] Deploy application
-- [ ] Clean up project files
-  - [ ] Remove unused deployment files and configurations
-  - [ ] Consolidate deployment documentation
-  - [ ] Remove temporary scripts and test files
-  - [ ] Clean up alternative deployment configurations
+- [x] Clean up project files
+  - [x] Remove unused deployment files and configurations
+  - [x] Consolidate deployment documentation
+  - [x] Fix Dockerfile linting issues
+  - [x] Remove duplicate code in start.sh
+  - [x] Update README.md with simplified instructions
+  - [x] Create CLEANUP-PLAN.md to track cleanup progress
+  - [x] Remove empty files (APACHE-DEPLOYMENT.md, Dockerfile.apache, etc.)
+  - [x] Remove redundant deployment scripts
 
 ## Recent Improvements (September 2025)
 
@@ -182,10 +189,11 @@ A mobile-first AI-powered weather agent web application that allows users to ask
    - [x] Created deployment documentation
    - [x] Added Docker deployment guide
    - [x] Added Fly.io deployment guide
-6. Clean up project files
-   - [ ] Remove unused deployment files and configurations
-   - [ ] Consolidate deployment documentation
-   - [ ] Remove temporary scripts and test files
+6. ~~Clean up project files~~ [COMPLETED]
+   - [x] Remove unused deployment files and configurations
+   - [x] Consolidate deployment documentation
+   - [x] Remove temporary scripts and test files
+   - [x] Fix Dockerfile and start.sh issues
 
 ## Success Criteria
 - Users can ask weather questions in natural language
