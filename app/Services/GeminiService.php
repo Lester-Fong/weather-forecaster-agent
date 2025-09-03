@@ -70,6 +70,13 @@ class GeminiService
         $weatherData = $context['weather'];
         $formattedData = '';
 
+        // Add current time information for accurate hourly forecasts using Carbon
+        $timezone = isset($weatherData['timezone']) ? $weatherData['timezone'] : 'UTC';
+        $now = \Carbon\Carbon::now($timezone);
+        $currentHour = $now->format('G'); // 24-hour format without leading zeros
+        $currentTimePeriod = $now->format('a'); // am/pm
+        $formattedData .= "CURRENT_TIME: " . $now->format('g:i a') . " (Hour: {$currentHour}, Timezone: {$timezone})\n\n";
+
         // Format current weather data
         if (isset($weatherData['current'])) {
             $current = $weatherData['current'];
@@ -109,10 +116,13 @@ class GeminiService
             }
         }
 
-        // Format forecast data
+        // Extract and format hourly forecast data for the next 5 hours
+        $formattedData .= $this->formatNextFiveHoursForecast($weatherData);
+
+        // Format daily forecast data
         if (isset($weatherData['daily'])) {
             $daily = $weatherData['daily'];
-            $formattedData .= "\nForecast:\n";
+            $formattedData .= "\nDaily Forecast:\n";
 
             for ($i = 0; $i < count($daily['time'] ?? []); $i++) {
                 $date = $daily['time'][$i];
@@ -141,7 +151,7 @@ class GeminiService
             }
         } else if (isset($weatherData['list'])) {
             // Handle OpenWeatherMap forecast format
-            $formattedData .= "\nForecast:\n";
+            $formattedData .= "\nDaily Forecast:\n";
             $dayForecasts = [];
 
             // Group by day
@@ -207,6 +217,19 @@ class GeminiService
      */
     protected function formatResponseText(string $text): string
     {
+        // Check if the response seems incomplete (ends abruptly)
+        if (
+            substr_count($text, '---') == 1 ||
+            substr_count($text, '\n\n') < 2 ||
+            strlen($text) < 100
+        ) {
+            Log::warning("Potentially incomplete response detected", [
+                'response_length' => strlen($text),
+                'contains_one_divider' => substr_count($text, '---') == 1,
+                'ends_with' => substr($text, -20)
+            ]);
+        }
+
         // Ensure paragraphs have proper spacing
         $text = preg_replace('/(\r\n|\r|\n){2,}/', "\n\n", $text);
         $text = preg_replace('/([.!?])\s+/', "$1\n\n", $text);
@@ -221,6 +244,136 @@ class GeminiService
         $text = trim($text);
 
         return $text;
+    }
+
+    /**
+     * Format the next five hours of forecast data starting from the current hour
+     *
+     * @param array $weatherData The weather data array
+     * @return string Formatted next 5 hours forecast
+     */
+    protected function formatNextFiveHoursForecast(array $weatherData): string
+    {
+        $formattedData = "\nNext 5 Hours Forecast:\n";
+
+        // Get the current hour using Carbon with the location's timezone
+        $timezone = isset($weatherData['timezone']) ? $weatherData['timezone'] : 'UTC';
+        $now = \Carbon\Carbon::now($timezone);
+        $currentHour = (int)$now->format('G'); // 24-hour format without leading zeros
+
+        // Debug log to see what hourly data is available
+        Log::info('Weather data structure for hourly forecast', [
+            'has_hourly' => isset($weatherData['hourly']),
+            'has_list' => isset($weatherData['list']),
+            'weather_data_keys' => array_keys($weatherData),
+            'timezone' => $timezone,
+            'current_hour' => $currentHour,
+            'now' => $now->toDateTimeString()
+        ]);
+
+        if (isset($weatherData['hourly'])) {
+            // For OpenMeteo API format
+            $hourly = $weatherData['hourly'];
+            $hourlyTimes = $hourly['time'] ?? [];
+
+            // Find the index for the current hour
+            $currentIndex = null;
+            foreach ($hourlyTimes as $index => $timeString) {
+                $hour = \Carbon\Carbon::parse($timeString, $timezone)->format('G');
+                if ((int)$hour === $currentHour) {
+                    $currentIndex = $index;
+                    break;
+                }
+            }
+
+            // If we found the current hour, generate forecast for next 5 hours
+            if ($currentIndex !== null) {
+                for ($i = 0; $i < 5; $i++) {
+                    $index = $currentIndex + $i;
+                    if (isset($hourlyTimes[$index])) {
+                        $time = \Carbon\Carbon::parse($hourlyTimes[$index], $timezone)->format('ga'); // Format as 7am, 2pm, etc.
+                        $temp = $hourly['temperature_2m'][$index] ?? '?';
+                        $weatherCode = $hourly['weathercode'][$index] ?? null;
+                        $condition = $weatherCode !== null ? $this->getWeatherConditionFromCode($weatherCode) : 'Unknown';
+                        $emoji = $this->getWeatherEmoji($condition);
+
+                        $formattedData .= "- {$time}: {$condition} {$emoji} ({$temp}°C)\n";
+                    }
+                }
+            }
+        } else if (isset($weatherData['list'])) {
+            // For OpenWeatherMap API format
+            $forecasts = $weatherData['list'] ?? [];
+            $hoursAdded = 0;
+
+            foreach ($forecasts as $forecast) {
+                $forecastDateTime = \Carbon\Carbon::createFromTimestamp($forecast['dt'])->setTimezone($timezone);
+                $forecastHour = (int)$forecastDateTime->format('G');
+
+                // If the forecast hour is greater than or equal to the current hour, include it
+                if ($forecastHour >= $currentHour || $hoursAdded > 0) {
+                    $time = $forecastDateTime->format('ga'); // Format as 7am, 2pm, etc.
+                    $temp = $forecast['main']['temp'] ?? '?';
+                    $condition = ucfirst($forecast['weather'][0]['description'] ?? 'Unknown');
+                    $emoji = $this->getWeatherEmoji($condition);
+
+                    $formattedData .= "- {$time}: {$condition} {$emoji} ({$temp}°C)\n";
+
+                    $hoursAdded++;
+                    if ($hoursAdded >= 5) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // If we didn't get any hourly data, add a placeholder
+        if ($formattedData === "\nNext 5 Hours Forecast:\n") {
+            for ($i = 0; $i < 5; $i++) {
+                $hourDateTime = \Carbon\Carbon::now($timezone)->addHours($i);
+                $hour12 = $hourDateTime->format('g');
+                $ampm = $hourDateTime->format('a');
+
+                $time = $hour12 . $ampm;
+                $formattedData .= "- {$time}: Forecast not available\n";
+            }
+        }
+        return $formattedData;
+    }
+
+    /**
+     * Get appropriate weather emoji based on the condition
+     *
+     * @param string $condition The weather condition
+     * @return string The emoji representing that condition
+     */
+    protected function getWeatherEmoji(string $condition): string
+    {
+        $condition = strtolower($condition);
+
+        if (strpos($condition, 'clear') !== false || strpos($condition, 'sunny') !== false) {
+            return '☀️';
+        } elseif (strpos($condition, 'partly cloudy') !== false || strpos($condition, 'mainly clear') !== false) {
+            return '⛅';
+        } elseif (strpos($condition, 'cloudy') !== false || strpos($condition, 'overcast') !== false) {
+            return '☁️';
+        } elseif (strpos($condition, 'fog') !== false) {
+            return '🌫️';
+        } elseif (strpos($condition, 'drizzle') !== false) {
+            return '🌦️';
+        } elseif (strpos($condition, 'rain') !== false && strpos($condition, 'thunder') !== false) {
+            return '⛈️';
+        } elseif (strpos($condition, 'thunder') !== false) {
+            return '🌩️';
+        } elseif (strpos($condition, 'rain') !== false) {
+            return '🌧️';
+        } elseif (strpos($condition, 'snow') !== false || strpos($condition, 'blizzard') !== false) {
+            return '❄️';
+        } elseif (strpos($condition, 'sleet') !== false || strpos($condition, 'hail') !== false) {
+            return '🌨️';
+        } else {
+            return '🌡️'; // Default temperature emoji
+        }
     }
 
     /**
@@ -298,9 +451,9 @@ class GeminiService
         // Generate a cache key based on the prompt and context
         $cacheKey = 'gemini_' . md5($prompt . json_encode($context));
 
-        // Check if we have a cached response
+        // Force clear existing cache for this query to ensure fresh responses
         if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
+            Cache::forget($cacheKey);
         }
 
         try {
@@ -339,7 +492,7 @@ class GeminiService
             $fullPrompt .= "INSTRUCTIONS:\n";
             $fullPrompt .= "1. Respond directly to the user's query in a friendly, conversational tone.\n";
             $fullPrompt .= "2. Use the weather data provided to give accurate information.\n";
-            $fullPrompt .= "3. Format your response with clear paragraphs and line breaks between different topics or sections.\n";
+            $fullPrompt .= "3. Format your response with clear paragraphs and line breaks between different topics or sections. Only generate 4-6 paragraphs or sentences for the main weather information. \n";
             $fullPrompt .= "4. Start with a greeting that mentions the location and current conditions.\n";
             $fullPrompt .= "5. Put weather details in separate paragraphs from recommendations or advice.\n";
             $fullPrompt .= "6. If the query asks about weather in the future, include phrases like 'the forecast shows' or 'it looks like'.\n";
@@ -354,7 +507,23 @@ class GeminiService
             $fullPrompt .= "15. When referring to a city or location, ALWAYS include the country name for clarity (e.g., 'Paris, France').\n";
             $fullPrompt .= "16. Format your response with proper paragraph breaks to improve readability.\n";
             $fullPrompt .= "17. IMPORTANT: Use EXACTLY the location provided in the LOCATION field above. Do NOT switch to a similarly named location in a different country.\n";
-            $fullPrompt .= "18. Be precise about the country the location is in - if the location has the same name in another country, use the user's country as default. eg: it's Santa Rosa, Philippines then talk about the Philippines, not Italy or any other country.\n";
+            $fullPrompt .= "17a. Before the hourly forecast section, add a single line like 'Here's a peek at what the next few hours have in store:' to introduce the forecast.\n";
+            $fullPrompt .= "18. Create a nicely formatted hourly forecast section. For each hour, use this clean format with the hour on its own line and the condition indented below it: 
+
+            8am
+            - Overcast ☁️ (24°C)
+            ___________________________
+
+            9am
+            - Partly Cloudy ⛅ (25°C)
+            ___________________________
+
+            10am
+            - Sunny ☀️ (26°C)
+            ___________________________
+            
+            Each hour should have its own section with a divider line (use underscore characters) after it. Use the exact hours and weather information that I've provided in the 'Next 5 Hours Forecast' section above. Don't make up your own forecast times or data. Make sure to show all 5 hours in this clean, card-like format.\n";
+            $fullPrompt .= "19. Be precise about the country the location is in - if the location has the same name in another country, use the user's country as default. eg: it's Santa Rosa, Philippines then talk about the Philippines, not Italy or any other country.\n";
 
             // Debug log for API key
             Log::info("Gemini API Key Debug", [
@@ -379,7 +548,7 @@ class GeminiService
                     'temperature' => 0.7,
                     'topK' => 40,
                     'topP' => 0.95,
-                    'maxOutputTokens' => 200,
+                    'maxOutputTokens' => 800, // Increased from 200 to 800 for complete responses
                 ],
             ]);
 
